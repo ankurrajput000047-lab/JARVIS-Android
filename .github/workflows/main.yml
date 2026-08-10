@@ -22,7 +22,7 @@ jobs:
 
       - name: Build APK
         run: |
-          chmod +x ./gradlew
+          find . -name gradlew -type f -print -exec chmod +x {} \;
           ./gradlew assembleDebug
 
       - name: Upload JARVIS APK
