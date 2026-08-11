@@ -26,6 +26,25 @@ jobs:
         with:
           gradle-version: '8.13'
 
+      - name: Fix Java 8 to Java 17
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("project/ULTRON_V1_1_Android/app/build.gradle.kts")
+          s = p.read_text()
+
+          s += """
+
+          tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
+              sourceCompatibility = "17"
+              targetCompatibility = "17"
+          }
+          """
+
+          p.write_text(s)
+          PY
+
       - name: Build ULTRON APK
         run: |
           cd project/ULTRON_V1_1_Android
