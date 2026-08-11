@@ -26,7 +26,29 @@ jobs:
         with:
           gradle-version: '8.13'
 
-      - name: Fix Java 8 to Java 17
+      - name: Fix all Java and Kotlin targets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path("project/ULTRON_V1_1_Android")
+
+          for p in root.rglob("*.gradle.kts"):
+              s = p.read_text()
+
+              s = s.replace("JavaVersion.VERSION_1_8", "JavaVersion.VERSION_17")
+              s = s.replace("JavaVersion.VERSION_8", "JavaVersion.VERSION_17")
+              s = s.replace('sourceCompatibility = "1.8"', 'sourceCompatibility = "17"')
+              s = s.replace('targetCompatibility = "1.8"', 'targetCompatibility = "17"')
+              s = s.replace('sourceCompatibility = \'1.8\'', 'sourceCompatibility = \'17\'')
+              s = s.replace('targetCompatibility = \'1.8\'', 'targetCompatibility = \'17\'')
+              s = s.replace('jvmTarget = "1.8"', 'jvmTarget = "17"')
+              s = s.replace("jvmTarget = '1.8'", "jvmTarget = '17'")
+
+              p.write_text(s)
+          PY
+
+      - name: Force Java compiler to 17
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -36,9 +58,13 @@ jobs:
 
           s += """
 
-          tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
+          tasks.withType<JavaCompile>().configureEach {
               sourceCompatibility = "17"
               targetCompatibility = "17"
+          }
+
+          tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+              kotlinOptions.jvmTarget = "17"
           }
           """
 
@@ -48,7 +74,7 @@ jobs:
       - name: Build ULTRON APK
         run: |
           cd project/ULTRON_V1_1_Android
-          gradle assembleDebug
+          gradle clean assembleDebug
 
       - name: Upload ULTRON APK
         uses: actions/upload-artifact@v4
